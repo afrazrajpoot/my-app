@@ -1,6 +1,7 @@
+import { BASE_URL } from "@env";
 export const fetchPaymentSheetParams = async (currency, amount) => {
   try {
-    const response = await fetch("http://192.168.1.106:5001/payment-sheet", {
+    const response = await fetch(`${BASE_URL}/payment-sheet`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

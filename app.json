@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "rideBooking",
-    "slug": "ridebooking",  
+    "slug": "ridebooking",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,11 +24,24 @@
         "ACCESS_COARSE_LOCATION",
         "INTERNET"
       ],
-      "package": "com.afrazrajpoot.myapp"
+      "package": "com.afrazrajpoot.myapp",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "8a1b32f5-a8ef-4398-8dfd-3c7db71d3539"

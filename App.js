@@ -4,17 +4,17 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Alert } from "react-native";
-import PaymentScreen from "./screens/Payment";
-import Map from "./screens/Map"; // Make sure the path is correct
-import Register from "./screens/Register";
+import PaymentScreen from "./src/screens/Payment";
+import Map from "./src/screens/Map"; // Make sure the path is correct
+import Register from "./src/screens/Register";
 
 import { Provider } from "react-redux";
-import { store } from "./redux/store";
+import { store } from "./src/redux/store";
 
-import { GlobalContextProvider } from "./context/GlobalStateProvider";
+import { GlobalContextProvider } from "./src/context/GlobalStateProvider";
 
-import Login from "./screens/Login";
-import HomeScreen from "./screens/HomeScreen";
+import Login from "./src/screens/Login";
+import HomeScreen from "./src/screens/HomeScreen";
 
 const Stack = createStackNavigator();
 
@@ -22,14 +22,18 @@ export default function App() {
   return (
     <Provider store={store}>
       <GlobalContextProvider>
-        <StripeProvider publishableKey="pk_test_51PQFreRvJI1ePtmLcNj1cfOWDLO7hiiJ7We2fNJxyAOOrqDse9wNZSvxSII3f6PyDBIz4LakPITeYQGaRfrM4rb900i2aZENEZ">
-          <NavigationContainer>
+        <StripeProvider publishableKey="pk_test_51OvmpoEWhpY7ASOw4YwOtVI4czVFxUxKVmrbuJkkTY7xrgHWzwFzlYaG92GHB4uQsPBPlSA1oUkMvgunyVe8ZRio00fevIPiwK">
+          <NavigationContainer options={{ headerShown: false }}>
             <Stack.Navigator initialRouteName="home">
-              <Stack.Screen name="payment" component={PaymentScreen} />
-              <Stack.Screen name="home" component={HomeScreen} />
-              <Stack.Screen name="Map" component={Map} />
-              <Stack.Screen name="register" component={Register} />
-              <Stack.Screen name="login" component={Login} />
+              <Stack.Screen
+                name="payment"
+                component={PaymentScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="home" component={HomeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Map" component={Map} options={{ headerShown: false }} />
+              <Stack.Screen name="register" component={Register} options={{ headerShown: false }} />
+              <Stack.Screen name="login" component={Login} options={{ headerShown: false }} />
             </Stack.Navigator>
           </NavigationContainer>
           <StatusBar style="auto" />
