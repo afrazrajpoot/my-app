@@ -16,7 +16,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 
 export default function PaymentScreen({ navigation }) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [currency, setCurrency] = useState("eur");
+  const [currency, setCurrency] = useState("RS");
   const [amount, setAmount] = useState("");
   const [processing, setProcessing] = useState(false);
 
@@ -77,10 +77,10 @@ export default function PaymentScreen({ navigation }) {
 
           <View style={styles.card}>
             <View style={styles.inputContainer}>
-              <FontAwesome5 name="euro-sign" size={20} color="#007AFF" style={styles.inputIcon} />
+              <FontAwesome5 name="rupee-sign" size={20} color="#007AFF" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Currency (e.g., eur)"
+                placeholder="Currency (e.g., rupees)"
                 value={currency}
                 onChangeText={setCurrency}
                 placeholderTextColor="#A0A0A0"

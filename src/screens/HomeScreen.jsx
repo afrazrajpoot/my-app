@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useGetUserData from "../customHooks/useGetUserData";
-
+import Toggle from "../components/Toggle";
 const HomeScreen = () => {
   const navigation = useNavigation();
 
@@ -27,6 +27,7 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
+          <Toggle />
           <View style={styles.profileSection}>
             <View style={styles.avatarPlaceholder}>
               <Ionicons name="person" size={40} color="#FFF" />
@@ -56,38 +57,9 @@ const HomeScreen = () => {
               onPress={() => navigation.navigate("payment")}
             >
               <Ionicons name="car-outline" size={24} color="#FFF" />
-              <Text style={styles.actionButtonText}>Book Car</Text>
+              <Text style={styles.actionButtonText}>Search Taxi</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.menuOptions}>
-          <Text style={styles.sectionTitle}>Menu</Text>
-          <MenuOption
-            icon="person-outline"
-            title="Profile"
-            onPress={() => console.log("Profile pressed")}
-          />
-          <MenuOption
-            icon="calendar-outline"
-            title="My Bookings"
-            onPress={() => console.log("My Bookings pressed")}
-          />
-          <MenuOption
-            icon="star-outline"
-            title="Favorites"
-            onPress={() => console.log("Favorites pressed")}
-          />
-          <MenuOption
-            icon="settings-outline"
-            title="Settings"
-            onPress={() => console.log("Settings pressed")}
-          />
-          <MenuOption
-            icon="help-circle-outline"
-            title="Help & Support"
-            onPress={() => console.log("Help pressed")}
-          />
         </View>
       </ScrollView>
     </SafeAreaView>

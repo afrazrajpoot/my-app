@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { useRegisterUserMutation } from "../redux/storeApi";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -81,15 +82,17 @@ const Register = () => {
                 />
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.pickerContainer}>
                 <FontAwesome5 name="users" size={20} color="#007AFF" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="User Type"
-                  value={userType}
-                  onChangeText={setUserType}
-                  placeholderTextColor="#A0A0A0"
-                />
+                <Picker
+                  selectedValue={userType}
+                  style={styles.picker}
+                  onValueChange={(itemValue) => setUserType(itemValue)}
+                >
+                  <Picker.Item label="Select User Type" value="" />
+                  <Picker.Item label="Rider" value="Rider" />
+                  <Picker.Item label="User" value="User" />
+                </Picker>
               </View>
 
               <View style={styles.inputContainer}>
@@ -138,7 +141,6 @@ const Register = () => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -178,6 +180,18 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E0E0E0",
     marginBottom: 20,
     paddingBottom: 10,
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    marginBottom: 20,
+  },
+  picker: {
+    flex: 1,
+    height: 50,
+    color: "#333",
   },
   inputIcon: {
     marginRight: 10,

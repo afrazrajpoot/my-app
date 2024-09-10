@@ -32,7 +32,7 @@ export default function Map() {
   const [distance, setDistance] = useState(null);
   const mapRef = useRef(null);
   const animatedValue = useRef(new Animated.Value(0)).current;
-  console.log(process.env.API_KEY, "api key");
+  // console.log(process.env.API_KEY, "api key");
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -54,7 +54,7 @@ export default function Map() {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          console.log("Location permission denied");
+          // console.log("Location permission denied");
           return;
         }
 
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   },
   autocompleteContainer: {
     position: "absolute",
-    top: 10,
+    top: 50,
     left: 10,
     right: 10,
     zIndex: 1,
