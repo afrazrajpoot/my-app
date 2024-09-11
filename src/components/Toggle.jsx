@@ -3,10 +3,12 @@ import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import useGetUserData from "../customHooks/useGetUserData";
+import { useGlobalState } from "../context/GlobalStateProvider";
 
 const Toggle = () => {
   const [isOn, setIsOn] = useState(false);
   const toggleValue = useSharedValue(isOn ? 1 : 0);
+  const {userInfo, setUserInfo} = useGlobalState();
   const [id, setId] = useState(null);
   const toggleWidth = 60; // Width of the toggle button
   const thumbWidth = 28; // Width of the toggle thumb
@@ -35,11 +37,13 @@ const Toggle = () => {
       console.log("Error fetching user type from storage:", err);
     }
   };
-
+console.log('====================================');
+console.log(userInfo?._id || data?.data?.data?._id);
+console.log('====================================');
   useEffect(() => {
-    setId(data?.data?.data?._id);
+    setId( userInfo?._id || data?.data?.data?._id);
     fetchUserTypeFromStorage(); // Fetch the user type on mount
-  }, [data]);
+  }, [userInfo?.userType]);
 
   const togglType = async (id) => {
     try {
@@ -53,12 +57,13 @@ const Toggle = () => {
           userType: type, // Send the userType in the request body
         }),
       });
+      setUserInfo({...userInfo, userType: type});
 
       const response = await res.json();
       console.log("Response from toggle:", response);
 
       // Store the updated user type in AsyncStorage
-      await AsyncStorage.setItem("userType", type);
+      await AsyncStorage.setItem("userType", type)
     } catch (err) {
       console.log("Error in toggling user/rider:", err);
     }
@@ -78,7 +83,7 @@ const Toggle = () => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.toggleButton} onPress={handleToggle}>
         <Animated.View style={[styles.toggleThumb, toggleButtonStyle]}>
-          <Text style={styles.toggleText}>{isOn ? "User" : "Rider"}</Text>
+          <Text style={styles.toggleText}>{isOn ? "rider" : "user"}</Text>
         </Animated.View>
       </TouchableOpacity>
     </View>
