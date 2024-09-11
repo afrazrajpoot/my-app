@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "rideBooking",
-    "slug": "ridebooking",
+    "slug": "rider-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/appLogo.png",
@@ -22,9 +22,11 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "INTERNET"
+        "INTERNET",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.afrazrajpoot.myapp",
+      "package": "com.rider.myapp",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8"
@@ -44,9 +46,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "8a1b32f5-a8ef-4398-8dfd-3c7db71d3539"
+        "projectId": "9e583a9e-c01b-4555-9e0a-8467214ff7a3"
       }
     },
-    "owner": "afrazrajpoot"
+    "owner": "muzi22"
   }
 }
