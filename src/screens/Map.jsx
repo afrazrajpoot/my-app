@@ -6,6 +6,7 @@ import {
   Text,
   Animated,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import MapView, { Marker, Circle, Polyline } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
@@ -81,7 +82,7 @@ export default function Map() {
   const fetchRoute = async (origin, destination) => {
     const originString = `${origin?.latitude},${origin?.longitude}`;
     const destinationString = `${destination?.latitude},${destination?.longitude}`;
-    const apiKey =  'AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8' || process.env.API_KEY; // Replace with your API key
+    const apiKey = "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY; // Replace with your API key
 
     try {
       const response = await fetch(
@@ -150,7 +151,14 @@ export default function Map() {
       });
     }
   };
-
+  const getMarkerImage = (userType, isCurrentUser) => {
+    if (isCurrentUser) {
+      return require("../../assets/user.png");
+    }
+    return userType === "rider"
+      ? require("../../assets/car.png")
+      : require("../../assets/user.png");
+  };
   const onPlaceSelected = (details) => {
     const { lat, lng } = details.geometry.location;
     setDestination({ latitude: lat, longitude: lng });
@@ -177,7 +185,7 @@ export default function Map() {
         fetchDetails={true}
         onPress={(data, details = null) => onPlaceSelected(details)}
         query={{
-          key: 'AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8' || process.env.API_KEY,
+          key: "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY,
           language: "en",
         }}
         styles={{
@@ -205,7 +213,7 @@ export default function Map() {
 
         {destination && (
           <Marker coordinate={destination} title="Destination">
-            <MaterialIcons name="location-on" size={36} color="#4CAF50" />
+            <Image source={require("../../assets/user.png")} style={styles.markerImage} />
           </Marker>
         )}
 
@@ -226,7 +234,7 @@ export default function Map() {
               parseFloat(item?.lat),
               parseFloat(item?.long)
             );
-            return markerDistance <= 5;
+            return markerDistance <= radius / 1000;
           })
           .map((item, index) => (
             <Marker
@@ -238,10 +246,9 @@ export default function Map() {
               title={item?.name || `User ${index + 1}`}
               onPress={() => onMarkerPress(item)}
             >
-              <MaterialIcons
-                name="person-pin-circle"
-                size={36}
-                color={item?._id === userData?.data?.data?._id ? "#1E88E5" : "#FF5722"}
+              <Image
+                source={getMarkerImage(item?.userType, item?._id === userData?.data?.data?._id)}
+                style={styles.markerImage}
               />
             </Marker>
           ))}
@@ -292,6 +299,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "flex-end",
     alignItems: "center",
+  },
+  markerImage: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
   },
   radiusControl: {
     position: "absolute",
