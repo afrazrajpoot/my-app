@@ -9,7 +9,7 @@ const GlobalContextProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [login, setLogin] = useState(false);
   const [location, setLocation] = useState({});
-
+  const [state, updateState] = useState(false);
   // Function to save token in local storage
   const tokenInlocal = async (data) => {
     try {
@@ -73,6 +73,8 @@ const GlobalContextProvider = ({ children }) => {
         tokenInlocal,
         location,
         setLocation,
+        state,
+        updateState,
       }}
     >
       {children}
@@ -85,9 +87,7 @@ const useGlobalState = () => {
   const context = useContext(GlobalContext);
 
   if (!context) {
-    throw new Error(
-      "useGlobalState must be used within a GlobalContextProvider"
-    );
+    throw new Error("useGlobalState must be used within a GlobalContextProvider");
   }
 
   return context;

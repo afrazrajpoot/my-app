@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useGetUserData from "../customHooks/useGetUserData";
 import Toggle from "../components/Toggle";
+import { useGlobalState } from "../context/GlobalStateProvider";
 const HomeScreen = () => {
   const navigation = useNavigation();
 
@@ -17,12 +18,14 @@ const HomeScreen = () => {
   );
 
   const data = useGetUserData();
-
+  const { state, updateState } = useGlobalState();
   const handleLogout = async () => {
     await AsyncStorage.removeItem("userData");
     navigation.navigate("login");
   };
-
+  useEffect(() => {
+    // updateState(true)
+  }, [state]);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

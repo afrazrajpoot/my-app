@@ -1,7 +1,7 @@
 import { BASE_URL } from "@env";
 export const fetchPaymentSheetParams = async (currency, amount) => {
   try {
-    const response = await fetch(`${BASE_URL}/payment-sheet`, {
+    const response = await fetch(`https://api.funrides.co.uk/payment-sheet`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

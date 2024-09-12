@@ -15,15 +15,17 @@ import { Picker } from "@react-native-picker/picker";
 import { useRegisterUserMutation } from "../redux/storeApi";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useGlobalState } from "../context/GlobalStateProvider";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userType, setUserType] = useState("");
   const [password, setPassword] = useState("");
-  const [registerUser, { isError, isLoading, isSuccess }] = useRegisterUserMutation();
+  const [registerUser, { isError, isLoading, error, isSuccess }] = useRegisterUserMutation();
   const navigation = useNavigation();
-
+  // console.log(process.env.BASE_URL, "base url amdnadnla");
+  const {state,updateState} = useGlobalState()
   const handleRegister = async () => {
     if (!name || !email || !userType || !password) {
       Alert.alert("Error", "Please fill out all fields");
@@ -44,9 +46,14 @@ const Register = () => {
 
   useEffect(() => {
     if (isSuccess) {
+      updateState(true)
       navigation.navigate("login");
+
     }
-  }, [isSuccess]);
+    if (isError) {
+      console.log(error, "error");
+    }
+  }, [isSuccess, isError]);
 
   return (
     <SafeAreaView style={styles.container}>

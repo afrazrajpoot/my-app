@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-
 import {
   StyleSheet,
   View,
@@ -15,9 +14,11 @@ import * as Location from "expo-location";
 import { useGetAllUsersMutation } from "../redux/storeApi";
 import polyline from "@mapbox/polyline";
 import { MaterialIcons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 
 export default function Map() {
   const [userData, setUserData] = useState({});
+  const [radius, setRadius] = useState(10000);
   const [getUserByType, { isError, isLoading, data }] = useGetAllUsersMutation();
   const [region, setRegion] = useState({
     latitude: 31.5204,
@@ -33,6 +34,9 @@ export default function Map() {
   const mapRef = useRef(null);
   const animatedValue = useRef(new Animated.Value(0)).current;
   // console.log(process.env.API_KEY, "api key");
+  const updateRadius = (value) => {
+    setRadius(value * 1000); // Convert km to meters
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,7 +52,7 @@ export default function Map() {
     };
     fetchData();
   }, []);
-
+  console.log(data, "data data");
   useEffect(() => {
     const fetchCurrentLocation = async () => {
       try {
@@ -192,7 +196,7 @@ export default function Map() {
         {currentLocation && (
           <Circle
             center={currentLocation}
-            radius={10000}
+            radius={radius}
             fillColor="rgba(0, 122, 255, 0.1)"
             strokeColor="rgba(0, 122, 255, 0.3)"
             strokeWidth={2}
@@ -242,7 +246,20 @@ export default function Map() {
             </Marker>
           ))}
       </MapView>
-
+      <View style={styles.radiusControl}>
+        <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={1}
+          maximumValue={50}
+          step={0.5}
+          value={radius / 1000}
+          onValueChange={updateRadius}
+          minimumTrackTintColor="#1E88E5"
+          maximumTrackTintColor="#000000"
+          thumbTintColor="#1E88E5"
+        />
+      </View>
       {selectedMarker && (
         <Animated.View
           style={[
@@ -275,6 +292,68 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "flex-end",
     alignItems: "center",
+  },
+  radiusControl: {
+    position: "absolute",
+    top: 120,
+    left: 10,
+    right: 10,
+    backgroundColor: "white",
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  radiusText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  slider: {
+    width: "100%",
+  },
+  autocompleteInput: {
+    height: 50,
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  infoCard: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: "white",
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  infoButton: {
+    backgroundColor: "#1E88E5",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  infoButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
