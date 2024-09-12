@@ -6,8 +6,10 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useGetUserData from "../customHooks/useGetUserData";
 import Toggle from "../components/Toggle";
+import { useGlobalState } from "../context/GlobalStateProvider";
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const {userInfo} = useGlobalState();
 
   const MenuOption = ({ icon, title, onPress }) => (
     <TouchableOpacity style={styles.menuOption} onPress={onPress}>
@@ -33,8 +35,8 @@ const HomeScreen = () => {
               <Ionicons name="person" size={40} color="#FFF" />
             </View>
             <View>
-              <Text style={styles.userName}>{data?.data?.data?.name || "Guest"}</Text>
-              <Text style={styles.userEmail}>{data?.data?.data?.email || "No Email"}</Text>
+              <Text style={styles.userName}>{ userInfo?.name || data?.data?.data?.name || "Guest"}</Text>
+              <Text style={styles.userEmail}>{ userInfo?.email || data?.data?.data?.email || "No Email"}</Text>
             </View>
           </View>
           <TouchableOpacity onPress={handleLogout}>
@@ -54,10 +56,10 @@ const HomeScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate("payment")}
+              onPress={() => navigation.navigate("Map")}
             >
-              <Ionicons name="car-outline" size={24} color="#FFF" />
-              <Text style={styles.actionButtonText}>Search Taxi</Text>
+              <Ionicons name={userInfo?.userType === "user" ? "car-outline" : "people-outline"} size={24} color="#FFF" />
+              <Text style={styles.actionButtonText}>{userInfo?.userType === "user" ? "Search Taxi" : "Search Passenger"}</Text>
             </TouchableOpacity>
           </View>
         </View>

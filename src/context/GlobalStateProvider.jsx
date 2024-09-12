@@ -9,6 +9,7 @@ const GlobalContextProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [login, setLogin] = useState(false);
   const [location, setLocation] = useState({});
+  const [userInfo, setUserInfo] = useState(null);
 
   // Function to save token in local storage
   const tokenInlocal = async (data) => {
@@ -72,7 +73,7 @@ const GlobalContextProvider = ({ children }) => {
         logoutUser,
         tokenInlocal,
         location,
-        setLocation,
+        setLocation, userInfo, setUserInfo,
       }}
     >
       {children}

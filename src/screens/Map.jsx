@@ -77,7 +77,7 @@ export default function Map() {
   const fetchRoute = async (origin, destination) => {
     const originString = `${origin?.latitude},${origin?.longitude}`;
     const destinationString = `${destination?.latitude},${destination?.longitude}`;
-    const apiKey = process.env.API_KEY; // Replace with your API key
+    const apiKey =  'AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8' || process.env.API_KEY; // Replace with your API key
 
     try {
       const response = await fetch(
@@ -173,7 +173,7 @@ export default function Map() {
         fetchDetails={true}
         onPress={(data, details = null) => onPlaceSelected(details)}
         query={{
-          key: process.env.API_KEY,
+          key: 'AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8' || process.env.API_KEY,
           language: "en",
         }}
         styles={{
