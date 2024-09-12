@@ -98,7 +98,7 @@ const Register = () => {
                 >
                   <Picker.Item label="Select User Type" value="" />
                   <Picker.Item label="Rider" value="Rider" />
-                  <Picker.Item label="User" value="User" />
+                  <Picker.Item label="Passenger" value="User" />
                 </Picker>
               </View>
 

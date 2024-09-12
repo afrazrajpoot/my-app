@@ -22,8 +22,8 @@ import useGetUserData from "../customHooks/useGetUserData";
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { tokenInlocal, setUserInfo } = useGlobalState();
   const [loginUserApi, { isError, isLoading, isSuccess }] = useLoginUserMutation();
-  const { tokenInlocal } = useGlobalState();
   const [getLocation] = useGetUserLocationMutation();
   const { currentLocation } = useLocation();
 
@@ -36,6 +36,7 @@ const Login = ({ navigation }) => {
     try {
       const res = await loginUserApi({ email, password });
       await tokenInlocal(res);
+      setUserInfo(res.data?.data);
     } catch (error) {
       Alert.alert("Error", "Failed to login user");
     }
