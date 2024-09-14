@@ -1,14 +1,11 @@
 
 
-
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
-  ActivityIndicator,
   Text,
   Animated,
-  TouchableOpacity,
   Image,
 } from "react-native"
 import {useGlobalState} from "../context/GlobalStateProvider"
@@ -18,11 +15,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useGetAllUsersMutation } from "../redux/storeApi";
 import polyline from "@mapbox/polyline";
-import { MaterialIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 
 export default function Map() {
-  const [userData, setUserData] = useState({});
+  const [userData, setUserData] = useState(null);
   const [radius, setRadius] = useState(10000);
   const { userInfo, setUserInfo } = useGlobalState();
   const [getUserByType, { isError, isLoading, data }] = useGetAllUsersMutation();
@@ -39,31 +35,33 @@ export default function Map() {
   const [distance, setDistance] = useState(null);
   const mapRef = useRef(null);
   const animatedValue = useRef(new Animated.Value(0)).current;
-  // console.log(process.env.API_KEY, "api key");
+
   const updateRadius = (value) => {
-    setRadius(value * 1000); // Convert km to meters
+    setRadius(value * 1000);
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userData1 = await AsyncStorage.getItem("userData");
-        if (userData1) {
-          const parsedData = JSON.parse(userData1);
-          setUserData(parsedData);
-          await getUserByType({ userType: parsedData?.data?.data?.userType });
-        }
-      } catch (error) {
-        console.error("Error retrieving data: ", error.message);
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      const userData1 = await AsyncStorage.getItem("userData");
+      if (userData1) {
+        const parsedData = JSON.parse(userData1);
+        setUserData(parsedData);
+        await getUserByType({ userType: parsedData?.data?.data?.userType });
       }
-    };
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.error("Error retrieving data: ", error.message);
+    }
+  }, [getUserByType]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
   useEffect(() => {
     const fetchCurrentLocation = async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          // console.log("Location permission denied");
           return;
         }
 
@@ -82,7 +80,6 @@ export default function Map() {
     };
     fetchCurrentLocation();
   }, []);
-
   const fetchRoute = async (origin, destination) => {
     const originString = `${origin?.latitude},${origin?.longitude}`;
     const destinationString = `${destination?.latitude},${destination?.longitude}`;
@@ -155,14 +152,67 @@ export default function Map() {
       });
     }
   };
-  const getMarkerImage = (userType, isCurrentUser) => {
+  const getMarkerImage = useCallback((userType, isCurrentUser) => {
     if (isCurrentUser) {
       return require("../../assets/user2.png");
     }
     return userType === "rider"
       ? require("../../assets/car3.png")
       : require("../../assets/user2.png");
-  };
+  }, []);
+
+  const renderMarkers = useCallback(() => {
+    const markers = [];
+
+    // Current user marker
+    if (currentLocation && userData?.data?.data) {
+      markers.push(
+        <Marker
+          key="currentUser"
+          coordinate={currentLocation}
+          title={userData.data.data.name || "Current User"}
+        >
+          <Image
+            source={getMarkerImage(userData.data.data.userType, true)}
+            style={styles.markerImage}
+          />
+        </Marker>
+      );
+    }
+
+    if (data?.data) {
+      data.data
+        .filter((item) => {
+          const markerDistance = getDistanceFromLatLonInKm(
+            currentLocation?.latitude,
+            currentLocation?.longitude,
+            parseFloat(item?.lat),
+            parseFloat(item?.long)
+          );
+          return markerDistance <= radius / 1000 && item?._id !== userData?.data?.data?._id;
+        })
+        .forEach((item, index) => {
+          markers.push(
+            <Marker
+              key={item._id || index}
+              coordinate={{
+                latitude: parseFloat(item?.lat),
+                longitude: parseFloat(item?.long),
+              }}
+              title={item?.name || `User ${index + 1}`}
+              onPress={() => onMarkerPress(item)}
+            >
+              <Image
+                source={getMarkerImage(item?.userType, false)}
+                style={styles.markerImage}
+              />
+            </Marker>
+          );
+        });
+    }
+
+    return markers;
+  }, [currentLocation, userData, data, radius, getMarkerImage, onMarkerPress]);
   const onPlaceSelected = (details) => {
     const { lat, lng } = details.geometry.location;
     setDestination({ latitude: lat, longitude: lng });
@@ -178,6 +228,133 @@ export default function Map() {
     return (
       <View style={styles.container}>
       <GooglePlacesAutocomplete
+        placeholder="Search for a place"
+        fetchDetails={true}
+        onPress={(data, details = null) => onPlaceSelected(details)}
+        query={{
+          key: "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY,
+          language: "en",
+        }}
+        styles={{
+          container: styles.autocompleteContainer,
+          textInput: styles.autocompleteInput,
+        }}
+      />
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        region={region}
+        provider="google"
+      >
+        {currentLocation && (
+          <Circle
+            center={currentLocation}
+            radius={radius}
+            fillColor="rgba(30, 136, 229, 0.2)"
+            strokeColor="rgba(30, 136, 229, 0.8)"
+            strokeWidth={2}
+          />
+        )}
+
+        {destination && (
+          <Marker coordinate={destination} title="Destination">
+            <Image source={require("../../assets/user2.png")} style={styles.markerImage} />
+          </Marker>
+        )}
+
+        {routeCoordinates.length > 0 && (
+          <Polyline
+            coordinates={routeCoordinates}
+            strokeColor="#1E88E5"
+            strokeWidth={4}
+            lineDashPattern={[1]}
+          />
+        )}
+
+        {/* Current user marker */}
+        {currentLocation && userData?.data?.data && (
+          <Marker
+            coordinate={currentLocation}
+            title={userData.data.data.name || "Current User"}
+          >
+            <Image
+              source={getMarkerImage(userData.data.data.userType, true)}
+              style={styles.markerImage}
+            />
+          </Marker>
+        )}
+
+        {data?.data
+          ?.filter((item) => {
+            const markerDistance = getDistanceFromLatLonInKm(
+              currentLocation?.latitude,
+              currentLocation?.longitude,
+              parseFloat(item?.lat),
+              parseFloat(item?.long)
+            );
+            return markerDistance <= radius / 1000 && item?._id !== userData?.data?.data?._id;
+          })
+          .map((item, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: parseFloat(item?.lat),
+                longitude: parseFloat(item?.long),
+              }}
+              title={item?.name || `User ${index + 1}`}
+              onPress={() => onMarkerPress(item)}
+            >
+              <Image
+                source={getMarkerImage(item?.userType, false)}
+                style={styles.markerImage}
+              />
+            </Marker>
+          ))}
+      </MapView>
+      <View style={styles.radiusControl}>
+        <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={1}
+          maximumValue={50}
+          step={0.5}
+          value={radius / 1000} // Changed from 2000 to 1000 to match the radius calculation
+          onValueChange={updateRadius}
+          minimumTrackTintColor="#1E88E5" 
+          maximumTrackTintColor="#BBDEFB" 
+          thumbTintColor="#1E88E5" 
+        />
+      </View>
+
+      {selectedMarker && (
+        <Animated.View
+          style={[
+            styles.infoCard,
+            {
+              transform: [
+                {
+                  translateY: animatedValue.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [300, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Text style={styles.infoTitle}>{selectedMarker.name || "User"}</Text>
+          <Text style={styles.infoDistance}>Distance: {distance} km</Text>
+        </Animated.View>
+      )}
+    </View>
+
+    );
+  }
+// console.log(data,'users fetch')
+  return (
+    <View style={styles.container}>
+     <GooglePlacesAutocomplete
         placeholder="Search for a place"
         fetchDetails={true}
         onPress={(data, details = null) => onPlaceSelected(details)}
@@ -223,148 +400,7 @@ export default function Map() {
           />
         )}
 
-        {data?.data
-          ?.filter((item) => {
-            const markerDistance = getDistanceFromLatLonInKm(
-              currentLocation?.latitude,
-              currentLocation?.longitude,
-              parseFloat(item?.lat),
-              parseFloat(item?.long)
-            );
-            return markerDistance <= radius / 1000; // Changed from 2000 to 1000 to match the radius calculation
-          })
-          .map((item, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: parseFloat(item?.lat),
-                longitude: parseFloat(item?.long),
-              }}
-              title={item?.name || `User ${index + 1}`}
-              onPress={() => onMarkerPress(item)}
-            >
-              <Image
-                source={getMarkerImage(item?.userType, item?._id === userData?.data?.data?._id)}
-                style={styles.markerImage}
-              />
-            </Marker>
-          ))}
-      </MapView>
-
-      <View style={styles.radiusControl}>
-        <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={1}
-          maximumValue={50}
-          step={0.5}
-          value={radius / 1000} // Changed from 2000 to 1000 to match the radius calculation
-          onValueChange={updateRadius}
-          minimumTrackTintColor="#1E88E5" 
-          maximumTrackTintColor="#BBDEFB" 
-          thumbTintColor="#1E88E5" 
-        />
-      </View>
-
-      {selectedMarker && (
-        <Animated.View
-          style={[
-            styles.infoCard,
-            {
-              transform: [
-                {
-                  translateY: animatedValue.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [300, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.infoTitle}>{selectedMarker.name || "User"}</Text>
-          <Text style={styles.infoDistance}>Distance: {distance} km</Text>
-        </Animated.View>
-      )}
-    </View>
-
-    );
-  }
-console.log(data,'users fetch')
-  return (
-    <View style={styles.container}>
-      <GooglePlacesAutocomplete
-        placeholder="Search for a place"
-        fetchDetails={true}
-        onPress={(data, details = null) => onPlaceSelected(details)}
-        query={{
-          key: "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY,
-          language: "en",
-        }}
-        styles={{
-          container: styles.autocompleteContainer,
-          textInput: styles.autocompleteInput,
-        }}
-      />
-
-<MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={region}
-        region={region}
-        provider="google"
-      >
-        {currentLocation && (
-          <Circle
-            center={currentLocation}
-            radius={radius}
-            fillColor="rgba(30, 136, 229, 0.2)" // Light blue with opacity
-            strokeColor="rgba(30, 136, 229, 0.8)" // Darker blue for the border
-            strokeWidth={2}
-          />
-        )}
-
-        {destination && (
-          <Marker coordinate={destination} title="Destination">
-            <Image source={require("../../assets/user2.png")} style={styles.markerImage} />
-          </Marker>
-        )}
-
-        {routeCoordinates.length > 0 && (
-          <Polyline
-            coordinates={routeCoordinates}
-            strokeColor="#1E88E5"
-            strokeWidth={4}
-            lineDashPattern={[1]}
-          />
-        )}
-
-        {data?.data
-          ?.filter((item) => {
-            const markerDistance = getDistanceFromLatLonInKm(
-              currentLocation?.latitude,
-              currentLocation?.longitude,
-              parseFloat(item?.lat),
-              parseFloat(item?.long)
-            );
-            return markerDistance <= radius / 2000;
-          })
-          .map((item, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: parseFloat(item?.lat),
-                longitude: parseFloat(item?.long),
-              }}
-              title={item?.name || `User ${index + 1}`}
-              onPress={() => onMarkerPress(item)}
-            >
-              <Image
-                source={getMarkerImage(item?.userType, item?._id === userData?.data?.data?._id)}
-                style={styles.markerImage}
-              />
-            </Marker>
-          ))}
+        {renderMarkers()}
       </MapView>
       <View style={styles.radiusControl}>
         <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
