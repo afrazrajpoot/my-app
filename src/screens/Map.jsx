@@ -152,10 +152,7 @@ export default function Map() {
       });
     }
   };
-  const getMarkerImage = useCallback((userType, isCurrentUser) => {
-    if (isCurrentUser) {
-      return require("../../assets/user2.png");
-    }
+  const getMarkerImage = useCallback((userType) => {
     return userType === "rider"
       ? require("../../assets/car3.png")
       : require("../../assets/user2.png");
