@@ -1,3 +1,6 @@
+
+
+
 import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
@@ -7,7 +10,8 @@ import {
   Animated,
   TouchableOpacity,
   Image,
-} from "react-native";
+} from "react-native"
+import {useGlobalState} from "../context/GlobalStateProvider"
 import MapView, { Marker, Circle, Polyline } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +24,7 @@ import Slider from "@react-native-community/slider";
 export default function Map() {
   const [userData, setUserData] = useState({});
   const [radius, setRadius] = useState(10000);
+  const { userInfo, setUserInfo } = useGlobalState();
   const [getUserByType, { isError, isLoading, data }] = useGetAllUsersMutation();
   const [region, setRegion] = useState({
     latitude: 31.5204,
@@ -53,7 +58,6 @@ export default function Map() {
     };
     fetchData();
   }, []);
-  console.log(data, "data data");
   useEffect(() => {
     const fetchCurrentLocation = async () => {
       try {
@@ -153,11 +157,11 @@ export default function Map() {
   };
   const getMarkerImage = (userType, isCurrentUser) => {
     if (isCurrentUser) {
-      return require("../../assets/user.png");
+      return require("../../assets/user2.png");
     }
     return userType === "rider"
-      ? require("../../assets/car.png")
-      : require("../../assets/user.png");
+      ? require("../../assets/car3.png")
+      : require("../../assets/user2.png");
   };
   const onPlaceSelected = (details) => {
     const { lat, lng } = details.geometry.location;
@@ -173,13 +177,6 @@ export default function Map() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
       <GooglePlacesAutocomplete
         placeholder="Search for a place"
         fetchDetails={true}
@@ -205,15 +202,15 @@ export default function Map() {
           <Circle
             center={currentLocation}
             radius={radius}
-            fillColor="rgba(0, 122, 255, 0.1)"
-            strokeColor="rgba(0, 122, 255, 0.3)"
+            fillColor="rgba(30, 136, 229, 0.2)"
+            strokeColor="rgba(30, 136, 229, 0.8)"
             strokeWidth={2}
           />
         )}
 
         {destination && (
           <Marker coordinate={destination} title="Destination">
-            <Image source={require("../../assets/user.png")} style={styles.markerImage} />
+            <Image source={require("../../assets/user2.png")} style={styles.markerImage} />
           </Marker>
         )}
 
@@ -234,7 +231,123 @@ export default function Map() {
               parseFloat(item?.lat),
               parseFloat(item?.long)
             );
-            return markerDistance <= radius / 1000;
+            return markerDistance <= radius / 1000; // Changed from 2000 to 1000 to match the radius calculation
+          })
+          .map((item, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: parseFloat(item?.lat),
+                longitude: parseFloat(item?.long),
+              }}
+              title={item?.name || `User ${index + 1}`}
+              onPress={() => onMarkerPress(item)}
+            >
+              <Image
+                source={getMarkerImage(item?.userType, item?._id === userData?.data?.data?._id)}
+                style={styles.markerImage}
+              />
+            </Marker>
+          ))}
+      </MapView>
+
+      <View style={styles.radiusControl}>
+        <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={1}
+          maximumValue={50}
+          step={0.5}
+          value={radius / 1000} // Changed from 2000 to 1000 to match the radius calculation
+          onValueChange={updateRadius}
+          minimumTrackTintColor="#1E88E5" 
+          maximumTrackTintColor="#BBDEFB" 
+          thumbTintColor="#1E88E5" 
+        />
+      </View>
+
+      {selectedMarker && (
+        <Animated.View
+          style={[
+            styles.infoCard,
+            {
+              transform: [
+                {
+                  translateY: animatedValue.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [300, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Text style={styles.infoTitle}>{selectedMarker.name || "User"}</Text>
+          <Text style={styles.infoDistance}>Distance: {distance} km</Text>
+        </Animated.View>
+      )}
+    </View>
+
+    );
+  }
+console.log(data,'users fetch')
+  return (
+    <View style={styles.container}>
+      <GooglePlacesAutocomplete
+        placeholder="Search for a place"
+        fetchDetails={true}
+        onPress={(data, details = null) => onPlaceSelected(details)}
+        query={{
+          key: "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY,
+          language: "en",
+        }}
+        styles={{
+          container: styles.autocompleteContainer,
+          textInput: styles.autocompleteInput,
+        }}
+      />
+
+<MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        region={region}
+        provider="google"
+      >
+        {currentLocation && (
+          <Circle
+            center={currentLocation}
+            radius={radius}
+            fillColor="rgba(30, 136, 229, 0.2)" // Light blue with opacity
+            strokeColor="rgba(30, 136, 229, 0.8)" // Darker blue for the border
+            strokeWidth={2}
+          />
+        )}
+
+        {destination && (
+          <Marker coordinate={destination} title="Destination">
+            <Image source={require("../../assets/user2.png")} style={styles.markerImage} />
+          </Marker>
+        )}
+
+        {routeCoordinates.length > 0 && (
+          <Polyline
+            coordinates={routeCoordinates}
+            strokeColor="#1E88E5"
+            strokeWidth={4}
+            lineDashPattern={[1]}
+          />
+        )}
+
+        {data?.data
+          ?.filter((item) => {
+            const markerDistance = getDistanceFromLatLonInKm(
+              currentLocation?.latitude,
+              currentLocation?.longitude,
+              parseFloat(item?.lat),
+              parseFloat(item?.long)
+            );
+            return markerDistance <= radius / 2000;
           })
           .map((item, index) => (
             <Marker
@@ -260,11 +373,11 @@ export default function Map() {
           minimumValue={1}
           maximumValue={50}
           step={0.5}
-          value={radius / 1000}
+          value={radius / 2000}
           onValueChange={updateRadius}
-          minimumTrackTintColor="#1E88E5"
-          maximumTrackTintColor="#000000"
-          thumbTintColor="#1E88E5"
+          minimumTrackTintColor="#1E88E5" 
+          maximumTrackTintColor="#BBDEFB" 
+          thumbTintColor="#1E88E5" 
         />
       </View>
       {selectedMarker && (
@@ -285,9 +398,6 @@ export default function Map() {
         >
           <Text style={styles.infoTitle}>{selectedMarker.name || "User"}</Text>
           <Text style={styles.infoDistance}>Distance: {distance} km</Text>
-          <TouchableOpacity style={styles.infoButton}>
-            <Text style={styles.infoButtonText}>Contact</Text>
-          </TouchableOpacity>
         </Animated.View>
       )}
     </View>
@@ -300,9 +410,33 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  radiusControl: {
+    position: "absolute",
+    top: 120,
+    left: 10,
+    right: 10,
+    backgroundColor: "white",
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  radiusText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+    color: "#1E88E5", // Blue color for the text
+  },
+  slider: {
+    width: "100%",
+  },
   markerImage: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     resizeMode: "contain",
   },
   radiusControl: {
