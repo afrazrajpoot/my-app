@@ -19,7 +19,7 @@ import { styles } from "../theme/mapStyling";
 export default function Map() {
   const [userData, setUserData] = useState(null);
   const [radius, setRadius] = useState(10000);
-  const { userInfo, setUserInfo } = useGlobalState();
+  const { userInfo, setUserInfo,state } = useGlobalState();
   const [getUserByType, { isError, isLoading, data }] = useGetAllUsersMutation();
   const [region, setRegion] = useState({
     latitude: 31.5204,
@@ -78,7 +78,7 @@ export default function Map() {
       }
     };
     fetchCurrentLocation();
-  }, []);
+  }, [state]);
   const fetchRoute = async (origin, destination) => {
     const originString = `${origin?.latitude},${origin?.longitude}`;
     const destinationString = `${destination?.latitude},${destination?.longitude}`;
@@ -159,7 +159,7 @@ export default function Map() {
 
   const renderMarkers = useCallback(() => {
     const markers = [];
-
+  
     // Current user marker
     if (currentLocation && userData?.data?.data) {
       markers.push(
@@ -175,7 +175,7 @@ export default function Map() {
         </Marker>
       );
     }
-    // console.log(markers ,'array of markers')
+  
     if (data?.data) {
       data.data
         .filter((item) => {
@@ -185,7 +185,12 @@ export default function Map() {
             parseFloat(item?.lat),
             parseFloat(item?.long)
           );
-          return markerDistance <= radius / 1000 && item?._id !== userData?.data?.data?._id;
+          // Add condition to check if the user is online
+          return (
+            markerDistance <= radius / 1000 &&
+            item?._id !== userData?.data?.data?._id &&
+            item?.status === "online" // Only show markers for online users
+          );
         })
         .forEach((item, index) => {
           markers.push(
@@ -206,7 +211,7 @@ export default function Map() {
           );
         });
     }
-
+  
     return markers;
   }, [currentLocation, userData, data, radius, getMarkerImage, onMarkerPress]);
   const onPlaceSelected = (details) => {
@@ -229,7 +234,7 @@ export default function Map() {
     );
   }
 
-// console.log(data,'users fetch')
+console.log(data,'users fetch')
   return (
     <View style={styles.container}>
      <GooglePlacesAutocomplete
@@ -317,4 +322,9 @@ export default function Map() {
     </View>
   );
 }
+
+
+
+// 2UZbCWRszsBF8lF5
+// afrazrajpoot46
 

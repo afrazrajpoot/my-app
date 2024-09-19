@@ -11,14 +11,19 @@ import {
   Platform,
 } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
-import { fetchPaymentSheetParams } from "../api/createPayment";
 import { FontAwesome5 } from "@expo/vector-icons";
+import axios from 'axios'; // Make sure to install axios
+import { fetchPaymentSheetParams } from "../api/createPayment";
+
+
 
 export default function PaymentScreen({ navigation }) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [currency, setCurrency] = useState("RS");
+  const [currency, setCurrency] = useState("INR");
   const [amount, setAmount] = useState("");
   const [processing, setProcessing] = useState(false);
+
+ 
 
   const initializePaymentSheet = async () => {
     const params = await fetchPaymentSheetParams(currency, amount);
@@ -26,40 +31,43 @@ export default function PaymentScreen({ navigation }) {
       setProcessing(false);
       return;
     }
-    const { paymentIntent, ephemeralKey, customer } = params;
+    const { paymentIntent, publishableKey } = params;
     const { error } = await initPaymentSheet({
       paymentIntentClientSecret: paymentIntent,
-      customerEphemeralKeySecret: ephemeralKey,
-      customerId: customer,
-      merchantDisplayName: "Merchant Name",
+      merchantDisplayName: "Your Merchant Name",
+      style: 'alwaysDark',
+      googlePay: true,
+      applePay: true,
+      merchantCountryCode: 'US',
     });
     if (error) {
-      Alert.alert("Payment initialization failed", error.message);
+      Alert.alert(`Error code: ${error.code}`, error.message);
       setProcessing(false);
     } else {
       setProcessing(false);
       handlePresentPaymentSheet();
     }
   };
+  
 
   const handlePresentPaymentSheet = async () => {
     const { error } = await presentPaymentSheet();
     if (error) {
-      Alert.alert("Payment failed", error.message);
+      Alert.alert(`Error code: ${error.code}`, error.message);
     } else {
-      Alert.alert("Success", "Your payment was successful!");
+      Alert.alert('Success', 'Your payment was successful!');
     }
     setProcessing(false);
   };
 
   const handlePayPress = async () => {
-    if (!amount || !currency) {
-      Alert.alert("Missing amount or currency");
+    if (!amount || isNaN(parseFloat(amount)) || !currency) {
+      Alert.alert("Invalid Input", "Please enter a valid amount and currency.");
       return;
     }
-    const minAmount = 50;
-    if (parseFloat(amount) * 100 < minAmount) {
-      Alert.alert("Amount too small", "The minimum amount is €0.50.");
+    const minAmount = 0.5;
+    if (parseFloat(amount) < minAmount) {
+      Alert.alert("Amount too small", `The minimum amount is ${currency} ${minAmount}.`);
       return;
     }
     setProcessing(true);

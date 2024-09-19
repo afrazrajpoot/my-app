@@ -6,12 +6,12 @@ const GlobalContext = createContext(null);
 
 // Define props type for GlobalContextProvider
 const GlobalContextProvider = ({ children }) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(false);
   const [login, setLogin] = useState(false);
   const [location, setLocation] = useState({});
   const [state, updateState] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
-
+ 
   // Function to save token in local storage
   const tokenInlocal = async (data) => {
     try {

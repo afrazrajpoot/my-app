@@ -35,42 +35,40 @@ const Toggle = () => {
 
   useEffect(() => {
     setId(data?.data?.data?._id);
-    fetchUserDataFromStorage();
+    if (data) {
+      fetchUserDataFromStorage();
+    }
   }, [data]);
 
   const toggleType = async () => {
     try {
       const newUserType = isUser ? "rider" : "user";
+      console.log(newUserType,'type of user')
       setIsUser(!isUser);
       toggleValue.value = withSpring(isUser ? 1 : 0);
 
-      const res = await fetch(`https://api.funrides.co.uk/api/v1/toggleType/${id}`, {
+      const res = await fetch(`https://api.ridebookingapp.aamirsaeed.com/api/v1/toggleType/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userType: newUserType }),
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        console.log("Error response from toggle:", errorData);
-        // Revert the toggle if the API call fails
-        setIsUser(isUser);
+        // If the API call fails, revert the toggle
+        console.log("Error response from toggle");
+        setIsUser(!isUser);  // Revert to the previous state
         toggleValue.value = withSpring(isUser ? 0 : 1);
         return;
       }
-
-      const response = await res.json();
-      console.log("Response from toggle:", response);
 
       // Update AsyncStorage
       const storedUserData = await AsyncStorage.getItem("userData");
       if (storedUserData) {
         const parsedData = JSON.parse(storedUserData);
-
         parsedData.data.data.userType = newUserType;
         await AsyncStorage.setItem("userData", JSON.stringify(parsedData));
       }
-    
+
       // Update global state
       setUserInfo({ ...userInfo, userType: newUserType });
 
@@ -78,7 +76,7 @@ const Toggle = () => {
     } catch (err) {
       console.log("Error in toggling user/rider:", err);
       // Revert the toggle if there's an error
-      setIsUser(isUser);
+      setIsUser(!isUser);
       toggleValue.value = withSpring(isUser ? 0 : 1);
     }
   };
