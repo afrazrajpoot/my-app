@@ -14,27 +14,31 @@ import {
 } from "react-native";
 import { useLoginUserMutation, useGetUserLocationMutation } from "../redux/storeApi";
 import { useGlobalState } from "../context/GlobalStateProvider";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import useLocation from "../customHooks/useLocation";
 import { FontAwesome5 } from "@expo/vector-icons";
 import useGetUserData from "../customHooks/useGetUserData";
 
 const Login = ({ navigation }) => {
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { tokenInlocal, setUserInfo } = useGlobalState();
   const [loginUserApi, { isError, isLoading, isSuccess }] = useLoginUserMutation();
-  const [getLocation] = useGetUserLocationMutation();
-  const { currentLocation } = useLocation();
+
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill out all fields");
       return;
     }
+    const data = {
+      email,
+      password,
 
+    }
     try {
-      const res = await loginUserApi({ email, password });
+      const res = await loginUserApi({ data });
       await tokenInlocal(res);
       setUserInfo(res.data?.data);
     } catch (error) {
@@ -43,25 +47,11 @@ const Login = ({ navigation }) => {
   };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await AsyncStorage.getItem("userData");
-        if (userData) {
-          const parsedData = JSON.parse(userData);
-          getLocation({
-            id: parsedData?.data?.data._id,
-            lat: currentLocation?.latitude,
-            long: currentLocation?.longitude,
-          });
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
+   
 
     if (isSuccess) {
       navigation.navigate("home");
-      fetchUserData();
+ 
     }
   }, [isSuccess]);
   const userData = useGetUserData();

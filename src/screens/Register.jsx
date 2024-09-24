@@ -16,15 +16,17 @@ import { useRegisterUserMutation } from "../redux/storeApi";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useGlobalState } from "../context/GlobalStateProvider";
+import useLocation from "../customHooks/useLocation";
 
 const Register = () => {
+  const {currentLocation} = useLocation()
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userType, setUserType] = useState("");
   const [password, setPassword] = useState("");
   const [registerUser, { isError, isLoading, error, isSuccess }] = useRegisterUserMutation();
   const navigation = useNavigation();
-  // console.log(process.env.BASE_URL, "base url amdnadnla");
+
   const {state,updateState} = useGlobalState()
   const handleRegister = async () => {
     if (!name || !email || !userType || !password) {
@@ -32,13 +34,16 @@ const Register = () => {
       return;
     }
 
+    const data ={
+      name,
+      email,
+      userType: userType.toLowerCase(),
+      password,
+      lat: currentLocation?.latitude,
+      long: currentLocation?.longitude,
+    }
     try {
-      registerUser({
-        name,
-        email,
-        userType: userType.toLowerCase(),
-        password,
-      });
+      registerUser({data});
     } catch (error) {
       Alert.alert("Error", "Failed to register user");
     }

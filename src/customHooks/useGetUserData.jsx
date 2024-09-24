@@ -24,7 +24,7 @@ const useGetUserData = () => {
     getUserData();
   }, []); // Runs once on mount to fetch user data
 
-  console.log(data, "user data dd");
+
   return data;
 };
 

@@ -65,9 +65,11 @@ const ToggleStatus = () => {
       const newUserType = isUser ? "offline" : "online";
       setIsUser(!isUser);
       toggleValue.value = withSpring(isUser ? 1 : 0);
-
-      const response = await toggleStatus({ status: newUserType, id: id }).unwrap();
-      console.log("Response from toggle:", response);
+      const data = {
+        status: newUserType, id: id 
+      }
+      const response = await toggleStatus({ data}).unwrap();
+    
 
       // Update AsyncStorage
       const storedUserData = await AsyncStorage.getItem("userData");
@@ -80,9 +82,9 @@ const ToggleStatus = () => {
       // Update global state
       // setUserInfo({ ...userInfo, userType: newUserType });
 
-      console.log("User type toggled successfully");
     } catch (err) {
-      console.error("Error in toggling user/rider:", err);
+      // console.error("Error in toggling user/rider:", err);
+      alert("PLease get the subscription")
       // Revert the toggle if there's an error
       setIsUser(isUser);
       toggleValue.value = withSpring(isUser ? 0 : 1);

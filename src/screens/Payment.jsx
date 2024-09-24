@@ -1,32 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
   SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
 } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import axios from 'axios'; // Make sure to install axios
+import { LinearGradient } from 'expo-linear-gradient';
 import { fetchPaymentSheetParams } from "../api/createPayment";
-
-
+import { useGlobalState } from "../context/GlobalStateProvider";
+import { useSubscriptionMutation } from "../redux/storeApi";
+import useGetUserData from "../customHooks/useGetUserData";
+import { useNavigation } from "@react-navigation/native";
 
 export default function PaymentScreen({ navigation }) {
+  const {navigate} = useNavigation()
+  const [getSubscription,{isLoading,isError}] = useSubscriptionMutation()
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [currency, setCurrency] = useState("INR");
-  const [amount, setAmount] = useState("");
   const [processing, setProcessing] = useState(false);
-
- 
-
+  const { selectedPlan } = useGlobalState();
+  const user =useGetUserData()
+  // console.log(user?.data?.data?._id,'my user ikl')
   const initializePaymentSheet = async () => {
-    const params = await fetchPaymentSheetParams(currency, amount);
+    
+    const params = await fetchPaymentSheetParams("USD", selectedPlan.price.slice(1));
     if (!params) {
       setProcessing(false);
       return;
@@ -48,69 +49,54 @@ export default function PaymentScreen({ navigation }) {
       handlePresentPaymentSheet();
     }
   };
-  
 
   const handlePresentPaymentSheet = async () => {
     const { error } = await presentPaymentSheet();
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else {
+        const data ={id:user?.data?.data?._id}
+      getSubscription({data}).unwrap();
+
       Alert.alert('Success', 'Your payment was successful!');
+      navigate('home')
     }
     setProcessing(false);
   };
 
   const handlePayPress = async () => {
-    if (!amount || isNaN(parseFloat(amount)) || !currency) {
-      Alert.alert("Invalid Input", "Please enter a valid amount and currency.");
-      return;
-    }
-    const minAmount = 0.5;
-    if (parseFloat(amount) < minAmount) {
-      Alert.alert("Amount too small", `The minimum amount is ${currency} ${minAmount}.`);
-      return;
-    }
     setProcessing(true);
     await initializePaymentSheet();
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-      >
-        <View style={styles.content}>
-          <Text style={styles.title}>Payment</Text>
+    <LinearGradient
+      colors={['#4c669f', '#3b5998', '#192f6a']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.content}>
+            <Text style={styles.title}>Complete Your Purchase</Text>
 
-          <View style={styles.card}>
-            <View style={styles.inputContainer}>
-              <FontAwesome5 name="rupee-sign" size={20} color="#007AFF" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Currency (e.g., rupees)"
-                value={currency}
-                onChangeText={setCurrency}
-                placeholderTextColor="#A0A0A0"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <FontAwesome5
-                name="money-bill-wave"
-                size={20}
-                color="#007AFF"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Amount"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-                placeholderTextColor="#A0A0A0"
-              />
-            </View>
+            <LinearGradient
+              colors={selectedPlan.color}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.planCard}
+            >
+              <FontAwesome5 name={selectedPlan.icon} size={40} color="#FFFFFF" style={styles.planIcon} />
+              <Text style={styles.planTitle}>{selectedPlan.title}</Text>
+              <Text style={styles.planPrice}>{selectedPlan.price}</Text>
+              <View style={styles.featuresContainer}>
+                {selectedPlan.features.map((feature, index) => (
+                  <View key={index} style={styles.featureItem}>
+                    <FontAwesome5 name="check-circle" size={16} color="#FFFFFF" />
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+            </LinearGradient>
 
             <TouchableOpacity
               style={[styles.button, styles.payButton]}
@@ -123,78 +109,91 @@ export default function PaymentScreen({ navigation }) {
                 color="#FFFFFF"
                 style={styles.buttonIcon}
               />
-              <Text style={styles.buttonText}>{processing ? "Processing..." : "Pay Now"}</Text>
+              <Text style={styles.buttonText}>{processing ? "Processing..." : `Pay ${selectedPlan.price}`}</Text>
             </TouchableOpacity>
           </View>
+        </ScrollView>
+
+        <View style={styles.tabContainer}>
+          <TouchableOpacity style={styles.tabButton} onPress={() => {}}>
+            <FontAwesome5 name="credit-card" size={24} color="#FFFFFF" />
+            <Text style={styles.tabButtonText}>Payment</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("Map")}>
+            <FontAwesome5 name="map-marked-alt" size={24} color="#FFFFFF" />
+            <Text style={styles.tabButtonText}>Map</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("register")}>
+            <FontAwesome5 name="user-plus" size={24} color="#FFFFFF" />
+            <Text style={styles.tabButtonText}>Register</Text>
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-
-      <View style={styles.tabContainer}>
-        <TouchableOpacity style={styles.tabButton} onPress={() => {}}>
-          <FontAwesome5 name="credit-card" size={24} color="#007AFF" />
-          <Text style={styles.tabButtonText}>Payment</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("Map")}>
-          <FontAwesome5 name="map-marked-alt" size={24} color="#34C759" />
-          <Text style={styles.tabButtonText}>Map</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("register")}>
-          <FontAwesome5 name="user-plus" size={24} color="#FF9500" />
-          <Text style={styles.tabButtonText}>Register</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
-  keyboardAvoidingView: {
+  safeArea: {
     flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   content: {
-    flex: 1,
-    justifyContent: "flex-start",
     padding: 20,
-    paddingTop: 60,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
     marginBottom: 30,
     textAlign: "center",
-    color: "#333",
+    color: "#FFFFFF",
   },
-  card: {
-    backgroundColor: "#FFFFFF",
+  planCard: {
     borderRadius: 15,
     padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+  planIcon: {
+    marginBottom: 10,
+  },
+  planTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 10,
+  },
+  planPrice: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 20,
-    paddingBottom: 10,
   },
-  inputIcon: {
-    marginRight: 10,
+  featuresContainer: {
+    width: '100%',
   },
-  input: {
-    flex: 1,
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  featureText: {
+    marginLeft: 10,
     fontSize: 16,
-    color: "#333",
+    color: '#FFFFFF',
   },
   button: {
     flexDirection: "row",
@@ -219,9 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
+    backgroundColor: "rgba(255,255,255,0.1)",
     paddingVertical: 10,
   },
   tabButton: {
@@ -232,6 +229,6 @@ const styles = StyleSheet.create({
   tabButtonText: {
     marginTop: 5,
     fontSize: 12,
-    color: "#333",
+    color: "#FFFFFF",
   },
 });

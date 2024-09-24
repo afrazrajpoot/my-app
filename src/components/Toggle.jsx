@@ -43,14 +43,17 @@ const Toggle = () => {
   const toggleType = async () => {
     try {
       const newUserType = isUser ? "rider" : "user";
-      console.log(newUserType,'type of user')
+    
       setIsUser(!isUser);
       toggleValue.value = withSpring(isUser ? 1 : 0);
-
-      const res = await fetch(`https://api.ridebookingapp.aamirsaeed.com/api/v1/toggleType/${id}`, {
+      const data = {
+        userType: newUserType,
+          id:id
+      }
+      const res = await fetch(`http://192.168.1.106:9000/api/v1/toggleType/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userType: newUserType }),
+        // headers: { "Content-Type": "application/json" ,'user-id':id},
+        body: JSON.stringify({data}),
       });
 
       if (!res.ok) {
@@ -72,7 +75,7 @@ const Toggle = () => {
       // Update global state
       setUserInfo({ ...userInfo, userType: newUserType });
 
-      console.log("User type toggled successfully");
+   
     } catch (err) {
       console.log("Error in toggling user/rider:", err);
       // Revert the toggle if there's an error

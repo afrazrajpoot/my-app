@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useGetUserLocationMutation } from "../redux/storeApi";
 
 // Create the context
 const GlobalContext = createContext(null);
@@ -11,12 +12,13 @@ const GlobalContextProvider = ({ children }) => {
   const [location, setLocation] = useState({});
   const [state, updateState] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
- 
+  const [selectedPlan, setSelectedPlan] = useState({});
+  const [updateLocation,{isLoading,isError}] = useGetUserLocationMutation()
   // Function to save token in local storage
   const tokenInlocal = async (data) => {
     try {
       if (data) {
-        console.log(data, "datallll");
+    
         await AsyncStorage.setItem("userData", JSON.stringify(data));
       }
     } catch (error) {
@@ -52,6 +54,9 @@ const GlobalContextProvider = ({ children }) => {
       try {
         const userData = await AsyncStorage.getItem("userData");
         if (userData) {
+          console.log(JSON.parse(userData).data.data._id,'user data')
+          const data ={id:JSON.parse(userData)?.data?.data?._id,long:JSON.parse(userData)?.data?.data?.long,lat:JSON.parse(userData)?.data?.data?.lat}
+          updateLocation({data}).unwrap()
           setLogin(true);
           // setData(JSON.parse(userData));
         }
@@ -80,6 +85,7 @@ const GlobalContextProvider = ({ children }) => {
         setLocation,
         userInfo,
         setUserInfo,
+        selectedPlan, setSelectedPlan
       }}
     >
       {children}

@@ -1,47 +1,55 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-// import { BASE_URL } from "@env";
 
 export const storeApi = createApi({
   reducerPath: "storeApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${process.env.BASE_URL}/api/v1`,
+    baseUrl: `http://192.168.1.106:9000/api/v1`,
   }),
   endpoints: (builder) => ({
     registerUser: builder.mutation({
-      query: (data) => ({
+      query: ({ data }) => ({
         url: "/registerUser",
         method: "POST",
         body: data,
       }),
     }),
     loginUser: builder.mutation({
-      query: (data) => ({
+      query: ({ data }) => ({
         url: "/login",
         method: "POST",
         body: data,
       }),
     }),
     getAllUsers: builder.mutation({
-      query: (data) => ({
+      query: ({ data }) => ({
         url: "/getUsers",
         method: "POST",
         body: data,
       }),
     }),
     getUserLocation: builder.mutation({
-      query: (data) => ({
+      query: ({ data }) => ({
         url: "/getUserLocation",
         method: "POST",
         body: data,
       }),
     }),
-    toggleStatus: builder.mutation({
-      query: (data) => ({
-        url: "/toggleStatus",
+    subscription: builder.mutation({
+      query: ({ data }) => ({
+        url: "/subscription",
         method: "PUT",
         body: data,
       }),
-      
+    }),
+    toggleStatus: builder.mutation({
+      query: ({ data, userId }) => ({
+        url: "/toggleStatus",
+        method: "PUT",
+        body: data,
+        headers: {
+          'user-id': userId, // Set custom header
+        },
+      }),
     }),
   }),
 });
@@ -52,4 +60,5 @@ export const {
   useGetUserLocationMutation,
   useLoginUserMutation,
   useToggleStatusMutation,
+  useSubscriptionMutation,
 } = storeApi;

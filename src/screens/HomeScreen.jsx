@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,11 +10,14 @@ import useGetUserData from "../customHooks/useGetUserData";
 import Toggle from "../components/Toggle";
 import ToggleStatus from "../components/ToggleStatus";
 import { useGlobalState } from "../context/GlobalStateProvider";
+import TrialNotification from "../components/TrialNotification";
 
 const { width } = Dimensions.get("window");
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const [showNotification, setShowNotification] = useState(false);
+  const [daysLeft, setDaysLeft] = useState(0);
   const { userInfo } = useGlobalState();
   const data = useGetUserData();
   const { state, updateState } = useGlobalState();
@@ -25,27 +28,28 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    // updateState(true)
-  }, [state]);
+    updateState(true);
+    if (data?.data?.data?.endTrial) {
+      const endTrialDate = new Date(data.data.data.endTrial);
+      const currentDate = new Date();
+      
+      if (endTrialDate > currentDate) {
+        const timeDiff = endTrialDate.getTime() - currentDate.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        setDaysLeft(daysDiff);
+        setShowNotification(true);
+      } else {
+        setShowNotification(false);
+      }
+    }
+  }, [data]);
 
-  const MenuOption = ({ icon, title, onPress }) => (
-    <Animated.View entering={FadeInRight.delay(300).duration(500)}>
-      <TouchableOpacity style={styles.menuOption} onPress={onPress}>
-        <LinearGradient
-          colors={["#4A90E2", "#63B3ED"]}
-          start={[0, 0]}
-          end={[1, 1]}
-          style={styles.menuOptionGradient}
-        >
-          <Ionicons name={icon} size={24} color="#FFF" />
-        </LinearGradient>
-        <Text style={styles.menuOptionText}>{title}</Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
+    {
+      showNotification ? <TrialNotification daysLeft={7} />:''
+    }
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Animated.View style={styles.header} entering={FadeInDown.duration(500)}>
           <View style={styles.profileSection}>
@@ -76,7 +80,7 @@ const HomeScreen = () => {
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => {
-                navigation.navigate("payment");
+                navigation.navigate("subscription");
                 updateState(true);
               }}
             >
@@ -87,7 +91,7 @@ const HomeScreen = () => {
                 style={styles.actionButtonGradient}
               >
                 <Ionicons name="card-outline" size={24} color="#FFF" />
-                <Text style={styles.actionButtonText}>Payment</Text>
+                <Text style={styles.actionButtonText}>Subscription</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity

@@ -45,7 +45,11 @@ export default function Map() {
       if (userData1) {
         const parsedData = JSON.parse(userData1);
         setUserData(parsedData);
-        await getUserByType({ userType: parsedData?.data?.data?.userType });
+        const data = {
+          userType: parsedData?.data?.data?.userType ,
+          id:parsedData?.data?.data?._id
+        }
+        await getUserByType({ data});
       }
     } catch (error) {
       console.error("Error retrieving data: ", error.message);
@@ -234,7 +238,6 @@ export default function Map() {
     );
   }
 
-console.log(data,'users fetch')
   return (
     <View style={styles.container}>
      <GooglePlacesAutocomplete
