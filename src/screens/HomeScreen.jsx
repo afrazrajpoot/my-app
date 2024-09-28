@@ -109,6 +109,25 @@ const HomeScreen = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+          <View>
+          <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                navigation.navigate("jazzCash");
+                updateState(true);
+              }}
+            >
+              <LinearGradient
+                colors={["#4A90E2", "#63B3ED"]}
+                start={[0, 0]}
+                end={[1, 1]}
+                style={styles.actionButtonGradient}
+              >
+                <Ionicons name="card-outline" size={24} color="#FFF" />
+                <Text style={styles.actionButtonText}>Jazz cash</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
       </ScrollView>

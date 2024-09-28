@@ -50,7 +50,7 @@ const Toggle = () => {
         userType: newUserType,
           id:id
       }
-      const res = await fetch(`http://192.168.1.106:9000/api/v1/toggleType/${id}`, {
+      const res = await fetch(`https://api.ridebookingapp.aamirsaeed.com/api/v1/toggleType/${id}`, {
         method: "PUT",
         // headers: { "Content-Type": "application/json" ,'user-id':id},
         body: JSON.stringify({data}),

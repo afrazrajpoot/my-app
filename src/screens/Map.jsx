@@ -46,7 +46,7 @@ export default function Map() {
         const parsedData = JSON.parse(userData1);
         setUserData(parsedData);
         const data = {
-          userType: parsedData?.data?.data?.userType ,
+          userType: parsedData?.data?.data?.userType,
           id:parsedData?.data?.data?._id
         }
         await getUserByType({ data});
@@ -161,6 +161,65 @@ export default function Map() {
       : require("../../assets/user2.png");
   }, []);
 
+  // const renderMarkers = useCallback(() => {
+  //   const markers = [];
+  
+  //   // Current user marker
+  //   if (currentLocation && userData?.data?.data) {
+  //     markers.push(
+  //       <Marker
+  //         key="currentUser"
+  //         coordinate={currentLocation}
+  //         title={userData.data.data.name || "Current User"}
+  //       >
+  //         <Image
+  //           source={getMarkerImage(userData.data.data.userType, true)}
+  //           style={styles.markerImage}
+  //         />
+  //       </Marker>
+  //     );
+  //   }
+  
+  //   if (data?.data) {
+  //     data.data
+  //       .filter((item) => {
+  //         const markerDistance = getDistanceFromLatLonInKm(
+  //           currentLocation?.latitude,
+  //           currentLocation?.longitude,
+  //           parseFloat(item?.lat),
+  //           parseFloat(item?.long)
+  //         );
+  //         // Add condition to check if the user is online
+  //         return (
+  //           markerDistance <= radius / 1000 &&
+  //           item?._id !== userData?.data?.data?._id &&
+  //           item?.status === "online" // Only show markers for online users
+  //         );
+  //       })
+  //       .forEach((item, index) => {
+  //         markers.push(
+  //           <Marker
+  //             key={item._id || index}
+  //             coordinate={{
+  //               latitude: parseFloat(item?.lat),
+  //               longitude: parseFloat(item?.long),
+  //             }}
+  //             title={item?.name || `User ${index + 1}`}
+  //             onPress={() => onMarkerPress(item)}
+  //           >
+  //             <Image
+  //               source={getMarkerImage(item?.userType, false)}
+  //               style={styles.markerImage}
+  //             />
+  //           </Marker>
+  //         );
+  //       });
+  //   }
+  
+  //   return markers;
+  // }, [currentLocation, userData, data, radius, getMarkerImage, onMarkerPress]);
+  
+  
   const renderMarkers = useCallback(() => {
     const markers = [];
   
@@ -180,45 +239,46 @@ export default function Map() {
       );
     }
   
-    if (data?.data) {
-      data.data
-        .filter((item) => {
-          const markerDistance = getDistanceFromLatLonInKm(
-            currentLocation?.latitude,
-            currentLocation?.longitude,
-            parseFloat(item?.lat),
-            parseFloat(item?.long)
-          );
-          // Add condition to check if the user is online
-          return (
-            markerDistance <= radius / 1000 &&
-            item?._id !== userData?.data?.data?._id &&
-            item?.status === "online" // Only show markers for online users
-          );
-        })
-        .forEach((item, index) => {
-          markers.push(
-            <Marker
-              key={item._id || index}
-              coordinate={{
-                latitude: parseFloat(item?.lat),
-                longitude: parseFloat(item?.long),
-              }}
-              title={item?.name || `User ${index + 1}`}
-              onPress={() => onMarkerPress(item)}
-            >
-              <Image
-                source={getMarkerImage(item?.userType, false)}
-                style={styles.markerImage}
-              />
-            </Marker>
-          );
-        });
+    if (Array.isArray(data?.data)) {
+      data.data.forEach((item, index) => {
+        if (
+          item &&
+          item.lat &&
+          item.long &&
+          item.status === "online" &&
+          item._id !== userData?.data?.data?._id
+        ) {
+          const latitude = parseFloat(item.lat);
+          const longitude = parseFloat(item.long);
+          
+          if (!isNaN(latitude) && !isNaN(longitude)) {
+            markers.push(
+              <Marker
+                key={item._id || `user_${index}`}
+                coordinate={{
+                  latitude: latitude,
+                  longitude: longitude,
+                }}
+                title={item.name || `User ${index + 1}`}
+                onPress={() => onMarkerPress(item)}
+              >
+                <View style={[styles.markerContainer, styles.blueMarker]}>
+                  <Image
+                    source={getMarkerImage(item.userType, false)}
+                    style={styles.markerImage}
+                  />
+                </View>
+              </Marker>
+            );
+          }
+        }
+      });
     }
   
     return markers;
-  }, [currentLocation, userData, data, radius, getMarkerImage, onMarkerPress]);
+  }, [currentLocation, userData, data, getMarkerImage, onMarkerPress]);
   const onPlaceSelected = (details) => {
+    
     const { lat, lng } = details.geometry.location;
     setDestination({ latitude: lat, longitude: lng });
     setRegion({

@@ -2,7 +2,7 @@ import { BASE_URL } from "@env";
 import axios from "axios";
 export const fetchPaymentSheetParams = async (currency, amount) => {
   try {
-    const response = await axios.post(`http://192.168.1.106:9000/payment-sheet`, {
+    const response = await axios.post(`https://api.ridebookingapp.aamirsaeed.com/payment-sheet`, {
       amount: parseFloat(amount),
       currency: currency,
     });

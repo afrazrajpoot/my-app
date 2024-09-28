@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const storeApi = createApi({
   reducerPath: "storeApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `http://192.168.1.106:9000/api/v1`,
+    baseUrl: `https://api.ridebookingapp.aamirsaeed.com/api/v1`,
   }),
   endpoints: (builder) => ({
     registerUser: builder.mutation({
@@ -41,6 +41,13 @@ export const storeApi = createApi({
         body: data,
       }),
     }),
+    jazzCash: builder.mutation({
+      query: ({ data }) => ({
+        url: "/jazzCash",
+        method: "POST",
+        body: data,
+      }),
+    }),
     toggleStatus: builder.mutation({
       query: ({ data, userId }) => ({
         url: "/toggleStatus",
@@ -61,4 +68,5 @@ export const {
   useLoginUserMutation,
   useToggleStatusMutation,
   useSubscriptionMutation,
+  useJazzCashMutation,
 } = storeApi;
