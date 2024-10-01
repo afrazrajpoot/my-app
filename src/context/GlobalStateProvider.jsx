@@ -41,6 +41,7 @@ const GlobalContextProvider = ({ children }) => {
   const logoutUser = async () => {
     try {
       await AsyncStorage.removeItem("userData");
+      await AsyncStorage.removeItem('phone')
       setLogin(false);
       setData(null);
     } catch (error) {

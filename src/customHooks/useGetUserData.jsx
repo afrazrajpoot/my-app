@@ -23,9 +23,7 @@ const useGetUserData = () => {
 const checkPhone = async()=>{
  
   await  getUserData();
-  // if(!phone) {
-  //   navigation.navigate('phone')
-  // }
+
   return phone;
 }
 

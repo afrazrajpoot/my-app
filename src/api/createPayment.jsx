@@ -17,7 +17,7 @@ export const fetchPaymentSheetParams = async (currency, amount) => {
 
 export const addPhone = async (data) => {
   try {
-    const res = await axios.post("http://192.168.1.107:9000/api/v1/addPhone", data);
+    const res = await axios.post("https://api.ridebookingapp.aamirsaeed.com//api/v1/addPhone", data);
     console.log(res);
     return res; // Return the response for further use if needed
   } catch (err) {

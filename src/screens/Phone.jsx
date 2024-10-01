@@ -1,24 +1,20 @@
 import { View, TextInput, StyleSheet, Button, Text, ActivityIndicator, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import useGetUserData from '../customHooks/useGetUserData';
-import axios from 'axios';
-import { addPhone } from '../api/createPayment';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { useAddPhoneMutation } from '../redux/storeApi';
 
 const Phone = () => {
   const [number, setNumber] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Loading state
   const data = useGetUserData();
+  const [addPhone, { isError, isLoading, data: asData }] = useAddPhoneMutation();
+  const { navigate } = useNavigation();
 
-const {navigate} = useNavigation()
-console.log(data,'my data isu')
   const submitPhone = async () => {
-    // Check for the user ID before proceeding
     const userId = data?.data?.data?._id;
-   
-    // Validate phone number and user ID
+
     if (!number) {
       Alert.alert("Error", "Please enter a phone number");
       return;
@@ -30,30 +26,29 @@ console.log(data,'my data isu')
     }
 
     try {
-      setIsLoading(true); // Set loading to true before the API call
       const payload = {
         id: userId,
-        phoneNumber: number
+        phoneNumber: number,
       };
 
-      // Log the payload for debugging
-      console.log("Submitting phone with payload:", payload);
+      // Submit the phone number and unwrap the result
+      const result = await addPhone(payload).unwrap();
 
-     const res =  await addPhone(payload); // Call addPhone directly with the payload
-     console.log(res.data,'response')
-     await AsyncStorage.setItem('userData',JSON.stringify(res.data))
-      Alert.alert("Success", "Phone number added successfully");
-      navigate('home')
-      setNumber(''); // Clear the input field after success
+      // Check if result is valid and store it in AsyncStorage
+      console.log(result.data.phoneNumber,'result')
+      if (result) {
+        await AsyncStorage.setItem('phone', result?.data?.phoneNumber); // Store valid data
+        Alert.alert("Success", "Phone number added successfully");
+        setNumber(''); // Clear the input field after success
+      } else {
+        console.error("Result is undefined");
+        Alert.alert("Error", "Failed to add phone number. Please try again.");
+      }
     } catch (error) {
       console.error("Error adding phone:", error);
       Alert.alert("Error", "Failed to add phone number. Please try again.");
-    } finally {
-      setIsLoading(false); // Set loading to false after the API call
     }
   };
-
-  console.log(data?.data?.data?._id, number, 'number phone'); // Log for debugging
 
   return (
     <View style={styles.container}>
@@ -75,7 +70,7 @@ console.log(data,'my data isu')
         <Button 
           title={'Add Phone'}
           onPress={submitPhone}
-          disabled={isLoading} // Disable button while loading
+          disabled={isLoading} // Using redux loading state to disable the button
           color="#007AFF"
         />
       </View>

@@ -21,6 +21,7 @@ const HomeScreen = () => {
   const { userInfo } = useGlobalState();
   const data = useGetUserData();
   const { updateState } = useGlobalState();
+  const [phoneChecked, setPhoneChecked] = useState(false);
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("userData");
@@ -45,19 +46,24 @@ const HomeScreen = () => {
   }, [data]);
 
   useEffect(() => {
-    const phone = data?.data?.data?.phoneNumber;
+    const checkPhoneNumber = async () => {
+      await AsyncStorage.removeItem('phone')
+      if (!phoneChecked && data) {
+        const existNumber = data?.data?.data?.phoneNumber;
+        const phoneNumber = await AsyncStorage.getItem('phone');
+        const ph =  JSON.parse(phoneNumber);
+        console.log(ph,'phhh')
+        if (!ph && !existNumber) {
+          // Only navigate if both AsyncStorage and API data don't have a phone number
+          navigation.navigate("phone");
+        }
+        setPhoneChecked(true);
+      }
+    };
 
-    if (!phone) {
-      // Redirect to phone screen after 2 seconds
-      const timer = setTimeout(() => {
-        navigation.navigate("phone");
-      }, 2000);
-
-      // Clear the timer if the component unmounts
-      return () => clearTimeout(timer);
-    }
-  }, [data]);
-
+    checkPhoneNumber();
+  }, [data, navigation, phoneChecked]);
+  console.log(data?.data,'phone number')
   return (
     <SafeAreaView style={styles.container}>
       {showNotification && <TrialNotification daysLeft={daysLeft} />}
