@@ -24,6 +24,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [userType, setUserType] = useState("");
   const [password, setPassword] = useState("");
+  const [number, setNumber] = useState("");
   const [registerUser, { isError, isLoading, error, isSuccess }] = useRegisterUserMutation();
   const navigation = useNavigation();
 
@@ -39,9 +40,11 @@ const Register = () => {
       email,
       userType: userType.toLowerCase(),
       password,
+      number,
       lat: currentLocation?.latitude,
       long: currentLocation?.longitude,
     }
+    console.log(data,'data')
     try {
       registerUser({data});
     } catch (error) {
@@ -90,6 +93,18 @@ const Register = () => {
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
+                  placeholderTextColor="#A0A0A0"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <FontAwesome5 name="phone" size={20} color="#007AFF" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Phone Number"
+                  value={number}
+                  onChangeText={setNumber}
+                  keyboardType="phone-pad"
                   placeholderTextColor="#A0A0A0"
                 />
               </View>

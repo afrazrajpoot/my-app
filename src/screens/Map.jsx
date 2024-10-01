@@ -119,7 +119,7 @@ export default function Map() {
   };
 
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-    const deg2rad = (deg) => deg * (Math.PI / 180);
+    const deg2rad = (deg) => deg * (Math.PI / 100);
     const R = 6371; // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -229,7 +229,7 @@ export default function Map() {
         <Marker
           key="currentUser"
           coordinate={currentLocation}
-          title={userData.data.data.name || "Current User"}
+          title={userData.data.data.phoneNumber || "Current User"}
         >
           <Image
             source={getMarkerImage(userData.data.data.userType, true)}
@@ -259,7 +259,7 @@ export default function Map() {
                   latitude: latitude,
                   longitude: longitude,
                 }}
-                title={item.name || `User ${index + 1}`}
+                title={item.phoneNumber || `User ${index + 1}`}
                 onPress={() => onMarkerPress(item)}
               >
                 <View style={[styles.markerContainer, styles.blueMarker]}>

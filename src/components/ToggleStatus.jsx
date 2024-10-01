@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 4,
     justifyContent: "center",
+    marginLeft:-150
   },
   toggleThumb: {
     width: 36,

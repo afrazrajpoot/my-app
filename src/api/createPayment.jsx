@@ -15,7 +15,17 @@ export const fetchPaymentSheetParams = async (currency, amount) => {
 };
 
 
-       
+export const addPhone = async (data) => {
+  try {
+    const res = await axios.post("http://192.168.1.107:9000/api/v1/addPhone", data);
+    console.log(res);
+    return res; // Return the response for further use if needed
+  } catch (err) {
+    console.error("Error adding phone:", err);
+    Alert.alert("Error", "Failed to add phone number. Please try again.");
+    throw err; // Rethrow the error to handle it in the calling function
+  }
+}
 
 
 

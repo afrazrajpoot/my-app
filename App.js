@@ -17,6 +17,7 @@ import Login from "./src/screens/Login";
 import HomeScreen from "./src/screens/HomeScreen";
 import Subscription from "./src/screens/Subscription";
 import JazzCash from "./src/screens/JazzCash";
+import Phone from "./src/screens/Phone";
 
 const Stack = createStackNavigator();
 
@@ -38,6 +39,7 @@ export default function App() {
               <Stack.Screen name="login" component={Login} options={{ headerShown: false }} />
               <Stack.Screen name="subscription" component={Subscription} options={{ headerShown: false }} />
               <Stack.Screen name="jazzCash" component={JazzCash} options={{ headerShown: false }} />
+              <Stack.Screen name="phone" component={Phone} options={{ headerShown: false }} />
 
             </Stack.Navigator>
           </NavigationContainer>

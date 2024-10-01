@@ -54,7 +54,7 @@ const GlobalContextProvider = ({ children }) => {
       try {
         const userData = await AsyncStorage.getItem("userData");
         if (userData) {
-          console.log(JSON.parse(userData).data.data._id,'user data')
+          // console.log(JSON.parse(userData).data.data._id,'user data')
           const data ={id:JSON.parse(userData)?.data?.data?._id,long:JSON.parse(userData)?.data?.data?.long,lat:JSON.parse(userData)?.data?.data?.lat}
           updateLocation({data}).unwrap()
           setLogin(true);

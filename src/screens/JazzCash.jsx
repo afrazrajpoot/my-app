@@ -3,11 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from "@react-navigation/native";
+
 const PaymentScreen = () => {
   const [amount, setAmount] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-const {navigate} = useNavigation();
+  const { navigate } = useNavigation();
+
   const handlePayment = async () => {
     if (!amount || !phoneNumber) {
       // Use a more visual alert or custom modal here
@@ -24,8 +26,8 @@ const {navigate} = useNavigation();
       });
 
       console.log('Payment Response:', response.data);
-      alert("success full payment")
-      navigate('home')
+      alert("Successful payment");
+      navigate('home');
       // Handle success based on response
     } catch (error) {
       console.error('Payment Error:', error);
@@ -38,10 +40,10 @@ const {navigate} = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Icon name="cash-multiple" size={50} color="#007bff" style={styles.icon} />
+        <Icon name="cash-multiple" size={40} color="#ED1C24" style={styles.icon} />
         <Text style={styles.title}>JazzCash Payment</Text>
         <View style={styles.inputContainer}>
-          {/* <Icon name="" size={20} color="#007bff" style={styles.inputIcon} /> */}
+          <Icon name="cash" size={20} color="#ED1C24" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter amount (PKR)"
@@ -51,7 +53,7 @@ const {navigate} = useNavigation();
           />
         </View>
         <View style={styles.inputContainer}>
-          <Icon name="phone" size={20} color="#007bff" style={styles.inputIcon} />
+          <Icon name="phone" size={20} color="#ED1C24" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter phone number"
@@ -66,11 +68,11 @@ const {navigate} = useNavigation();
           disabled={isLoading || !amount || !phoneNumber}
         >
           {isLoading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#fff" size="small" />
           ) : (
             <>
               <Icon name="credit-card-check" size={20} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>Pay Now</Text>
+              <Text style={styles.buttonText}>Pay with JazzCash</Text>
             </>
           )}
         </TouchableOpacity>
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   title: {
     fontSize: 24,
@@ -118,33 +120,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
   inputIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    height: 50,
+    height: 45,
     fontSize: 16,
   },
   button: {
     flexDirection: 'row',
-    height: 50,
-    backgroundColor: '#007bff',
+    height: 48,
+    backgroundColor: '#ED1C24',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    paddingHorizontal: 15,
+    alignSelf: 'center',
+    marginTop: 5,
   },
   buttonDisabled: {
-    backgroundColor: '#b3d9ff',
+    backgroundColor: '#f8a3a8',
   },
   buttonIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

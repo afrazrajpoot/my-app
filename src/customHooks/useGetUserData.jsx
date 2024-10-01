@@ -19,12 +19,28 @@ const useGetUserData = () => {
       console.log(error);
     }
   };
+  let phone = data?.data?.data?.phoneNumber
+const checkPhone = async()=>{
+ 
+  await  getUserData();
+  // if(!phone) {
+  //   navigation.navigate('phone')
+  // }
+  return phone;
+}
 
   useEffect(() => {
-    getUserData();
+  
+    checkPhone();
   }, []); // Runs once on mount to fetch user data
-
-
+  
+// if()
+// useEffect(()=>{
+//   let phone = data?.data?.data?.phoneNumber
+//   if(!phone) {
+//     navigation.navigate('phone')
+//   }
+// },[])
   return data;
 };
 
