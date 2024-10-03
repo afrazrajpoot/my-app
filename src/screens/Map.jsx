@@ -6,9 +6,9 @@ import {
   Animated,
   Image,
   ActivityIndicator,
-} from "react-native"
-import {useGlobalState} from "../context/GlobalStateProvider"
-import MapView, { Marker, Circle, Polyline } from "react-native-maps";
+} from "react-native";
+import { useGlobalState } from "../context/GlobalStateProvider";
+import MapView, { Marker, Circle, Polyline, Callout } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
@@ -19,8 +19,9 @@ import { styles } from "../theme/mapStyling";
 export default function Map() {
   const [userData, setUserData] = useState(null);
   const [radius, setRadius] = useState(10000);
-  const { userInfo, setUserInfo,state } = useGlobalState();
-  const [getUserByType, { isError, isLoading, data }] = useGetAllUsersMutation();
+  const { userInfo, setUserInfo, state } = useGlobalState();
+  const [getUserByType, { isError, isLoading, data }] =
+    useGetAllUsersMutation();
   const [region, setRegion] = useState({
     latitude: 31.5204,
     longitude: 74.3587,
@@ -47,9 +48,9 @@ export default function Map() {
         setUserData(parsedData);
         const data = {
           userType: parsedData?.data?.data?.userType,
-          id:parsedData?.data?.data?._id
-        }
-        await getUserByType({ data});
+          id: parsedData?.data?.data?._id,
+        };
+        await getUserByType({ data });
       }
     } catch (error) {
       console.error("Error retrieving data: ", error.message);
@@ -86,7 +87,8 @@ export default function Map() {
   const fetchRoute = async (origin, destination) => {
     const originString = `${origin?.latitude},${origin?.longitude}`;
     const destinationString = `${destination?.latitude},${destination?.longitude}`;
-    const apiKey = "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY; // Replace with your API key
+    const apiKey =
+      "AIzaSyA7cZCuVvMKML7cS7L-5uzyk5OrSEyqXW8" || process.env.API_KEY; // Replace with your API key
 
     try {
       const response = await fetch(
@@ -117,7 +119,7 @@ export default function Map() {
     );
     setDistance(distanceInKm.toFixed(2)); // Round to 2 decimal places
   };
-
+  console.log(distance)
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
     const deg2rad = (deg) => deg * (Math.PI / 100);
     const R = 6371; // Radius of the earth in km
@@ -125,10 +127,14 @@ export default function Map() {
     const dLon = deg2rad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(deg2rad(lat1)) *
+        Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in km
   };
+
 
   const onMarkerPress = (marker) => {
     setSelectedMarker(marker);
@@ -161,69 +167,58 @@ export default function Map() {
       : require("../../assets/user2.png");
   }, []);
 
-  // const renderMarkers = useCallback(() => {
-  //   const markers = [];
+
   
-  //   // Current user marker
-  //   if (currentLocation && userData?.data?.data) {
-  //     markers.push(
-  //       <Marker
-  //         key="currentUser"
-  //         coordinate={currentLocation}
-  //         title={userData.data.data.name || "Current User"}
-  //       >
-  //         <Image
-  //           source={getMarkerImage(userData.data.data.userType, true)}
-  //           style={styles.markerImage}
-  //         />
-  //       </Marker>
-  //     );
-  //   }
+  const CustomCallout = ({ name, phoneNumber, avatarSource }) => (
+    <View style={{
+      flex: 1,
+      alignItems: 'center',
+      backgroundColor: 'white',
+      width: 220,
+      padding: 10,
+      borderRadius: 10,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    }}>
+    {/* <Text>
+    <Image 
+        source={avatarSource} 
+        style={{
+          height: 80,
+          width: 80,
+          borderRadius: 40,
+          marginBottom: 10,
+          marginTop: -100
+        }} 
+      />
+    </Text> */}
+      <Text style={{
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+      }}>
+        {name}
+      </Text>
+      <Text style={{
+        fontSize: 14,
+        color: '#555',
+      }}>
+        Phone: {phoneNumber}
+      </Text>
+    </View>
+  );
   
-  //   if (data?.data) {
-  //     data.data
-  //       .filter((item) => {
-  //         const markerDistance = getDistanceFromLatLonInKm(
-  //           currentLocation?.latitude,
-  //           currentLocation?.longitude,
-  //           parseFloat(item?.lat),
-  //           parseFloat(item?.long)
-  //         );
-  //         // Add condition to check if the user is online
-  //         return (
-  //           markerDistance <= radius / 1000 &&
-  //           item?._id !== userData?.data?.data?._id &&
-  //           item?.status === "online" // Only show markers for online users
-  //         );
-  //       })
-  //       .forEach((item, index) => {
-  //         markers.push(
-  //           <Marker
-  //             key={item._id || index}
-  //             coordinate={{
-  //               latitude: parseFloat(item?.lat),
-  //               longitude: parseFloat(item?.long),
-  //             }}
-  //             title={item?.name || `User ${index + 1}`}
-  //             onPress={() => onMarkerPress(item)}
-  //           >
-  //             <Image
-  //               source={getMarkerImage(item?.userType, false)}
-  //               style={styles.markerImage}
-  //             />
-  //           </Marker>
-  //         );
-  //       });
-  //   }
-  
-  //   return markers;
-  // }, [currentLocation, userData, data, radius, getMarkerImage, onMarkerPress]);
-  
+
   
   const renderMarkers = useCallback(() => {
     const markers = [];
   
-    // Current user marker
     if (currentLocation && userData?.data?.data) {
       markers.push(
         <Marker
@@ -235,10 +230,17 @@ export default function Map() {
             source={getMarkerImage(userData.data.data.userType, true)}
             style={styles.markerImage}
           />
+          <Callout tooltip>
+            <CustomCallout
+              name={userData?.data?.data?.name || "User"}
+              phoneNumber={userData.data.data.phoneNumber}
+              avatarSource={require("../../assets/user2.png")}
+            />
+          </Callout>
         </Marker>
       );
     }
-  
+    // console.log(userData.data.data.name,'call')
     if (Array.isArray(data?.data)) {
       data.data.forEach((item, index) => {
         if (
@@ -250,7 +252,7 @@ export default function Map() {
         ) {
           const latitude = parseFloat(item.lat);
           const longitude = parseFloat(item.long);
-          
+  
           if (!isNaN(latitude) && !isNaN(longitude)) {
             markers.push(
               <Marker
@@ -268,6 +270,13 @@ export default function Map() {
                     style={styles.markerImage}
                   />
                 </View>
+                <Callout tooltip>
+                  <CustomCallout
+                    name={item.name || `User ${index + 1}`}
+                    phoneNumber={item.phoneNumber}
+                    avatarSource={require("../../assets/user2.png")}
+                  />
+                </Callout>
               </Marker>
             );
           }
@@ -277,8 +286,8 @@ export default function Map() {
   
     return markers;
   }, [currentLocation, userData, data, getMarkerImage, onMarkerPress]);
+
   const onPlaceSelected = (details) => {
-    
     const { lat, lng } = details.geometry.location;
     setDestination({ latitude: lat, longitude: lng });
     setRegion({
@@ -300,7 +309,7 @@ export default function Map() {
 
   return (
     <View style={styles.container}>
-     <GooglePlacesAutocomplete
+      <GooglePlacesAutocomplete
         placeholder="Search for a place"
         fetchDetails={true}
         onPress={(data, details = null) => onPlaceSelected(details)}
@@ -333,7 +342,10 @@ export default function Map() {
 
         {destination && (
           <Marker coordinate={destination} title="Destination">
-            <Image source={require("../../assets/user2.png")} style={styles.markerImage} />
+            <Image
+              source={require("../../assets/user2.png")}
+              style={styles.markerImage}
+            />
           </Marker>
         )}
 
@@ -349,7 +361,9 @@ export default function Map() {
         {renderMarkers()}
       </MapView>
       <View style={styles.radiusControl}>
-        <Text style={styles.radiusText}>Radius: {(radius / 1000).toFixed(1)} km</Text>
+        <Text style={styles.radiusText}>
+          Radius: {(radius / 1000).toFixed(1)} km
+        </Text>
         <Slider
           style={styles.slider}
           minimumValue={1}
@@ -357,9 +371,9 @@ export default function Map() {
           step={0.5}
           value={radius / 2000}
           onValueChange={updateRadius}
-          minimumTrackTintColor="#1E88E5" 
-          maximumTrackTintColor="#BBDEFB" 
-          thumbTintColor="#1E88E5" 
+          minimumTrackTintColor="#1E88E5"
+          maximumTrackTintColor="#BBDEFB"
+          thumbTintColor="#1E88E5"
         />
       </View>
       {selectedMarker && (
@@ -386,8 +400,5 @@ export default function Map() {
   );
 }
 
-
-
 // 2UZbCWRszsBF8lF5
 // afrazrajpoot46
-

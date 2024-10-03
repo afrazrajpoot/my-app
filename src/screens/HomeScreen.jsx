@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FadeInDown } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import useGetUserData from "../customHooks/useGetUserData";
-import Toggle from "../components/Toggle";
-import ToggleStatus from "../components/ToggleStatus";
 import { useGlobalState } from "../context/GlobalStateProvider";
 import TrialNotification from "../components/TrialNotification";
+import { useToggleStatusMutation } from "../redux/storeApi";
+import Sidebar from "../components/Sidebar";
 
 const { width } = Dimensions.get("window");
 
@@ -22,8 +22,27 @@ const HomeScreen = () => {
   const data = useGetUserData();
   const { updateState } = useGlobalState();
   const [phoneChecked, setPhoneChecked] = useState(false);
+  const [toggleStatus, {}] = useToggleStatusMutation();
+  const user = useGetUserData();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const sidebarAnimation = useRef(new Animated.Value(-width)).current;
+
+  const toggleSidebar = () => {
+    const toValue = isSidebarOpen ? -width : 0;
+    Animated.timing(sidebarAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   const handleLogout = async () => {
+    const data = {
+      id: user.data.data._id,
+      status: 'offline'
+    };
+    await toggleStatus({data}).unwrap();
     await AsyncStorage.removeItem("userData");
     navigation.navigate("login");
   };
@@ -47,14 +66,12 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const checkPhoneNumber = async () => {
-      await AsyncStorage.removeItem('phone')
+      await AsyncStorage.removeItem('phone');
       if (!phoneChecked && data) {
         const existNumber = data?.data?.data?.phoneNumber;
         const phoneNumber = await AsyncStorage.getItem('phone');
-        const ph =  JSON.parse(phoneNumber);
-        console.log(ph,'phhh')
+        const ph = JSON.parse(phoneNumber);
         if (!ph && !existNumber) {
-          // Only navigate if both AsyncStorage and API data don't have a phone number
           navigation.navigate("phone");
         }
         setPhoneChecked(true);
@@ -63,12 +80,15 @@ const HomeScreen = () => {
 
     checkPhoneNumber();
   }, [data, navigation, phoneChecked]);
-  console.log(data?.data,'phone number')
+
   return (
     <SafeAreaView style={styles.container}>
       {showNotification && <TrialNotification daysLeft={daysLeft} />}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Animated.View style={styles.header} entering={FadeInDown.duration(500)}>
+          <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
+            <Ionicons name="menu" size={30} color="#4A90E2" />
+          </TouchableOpacity>
           <View style={styles.profileSection}>
             <LinearGradient
               colors={["#4A90E2", "#63B3ED"]}
@@ -81,33 +101,6 @@ const HomeScreen = () => {
               <Text style={styles.userEmail}>{userInfo?.email || data?.data?.data?.email || "No Email"}</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Ionicons name="log-out-outline" size={22} color="#FFF" />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.toggleContainer}>
-          <View style={styles.toggleWrapper}>
-            <Toggle />
-            <ToggleStatus />
-          </View>
-          <TouchableOpacity
-            style={styles.jazzCashButton}
-            onPress={() => {
-              navigation.navigate("jazzCash");
-              updateState(true);
-            }}
-          >
-            <LinearGradient
-              colors={["#ED1C24", "#B90000"]}
-              start={[0, 0]}
-              end={[1, 1]}
-              style={styles.jazzCashButtonGradient}
-            >
-              <Ionicons name="cash-outline" size={20} color="#FFF" />
-              <Text style={styles.jazzCashButtonText}>JazzCash</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </Animated.View>
 
         <Animated.View style={styles.quickActions} entering={FadeInDown.delay(400).duration(500)}>
@@ -147,6 +140,14 @@ const HomeScreen = () => {
           </View>
         </Animated.View>
       </ScrollView>
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={toggleSidebar} 
+        animation={sidebarAnimation}
+        navigation={navigation}
+        handleLogout={handleLogout}
+        userType={userInfo?.userType}
+      />
     </SafeAreaView>
   );
 };
@@ -173,6 +174,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  menuButton: {
+    padding: 8,
+  },
   profileSection: {
     flexDirection: "row",
     alignItems: "center",
@@ -196,46 +200,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 2,
-  },
-  logoutButton: {
-    backgroundColor: "#4A90E2",
-    borderRadius: 20,
-    padding: 8,
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  toggleWrapper: {
-    flex: 1,
-  },
-  jazzCashButton: {
-    borderRadius: 20,
-    overflow: "hidden",
-    marginLeft: 12,
-    marginTop: -65,
-  },
-  jazzCashButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  jazzCashButtonText: {
-    color: "#FFF",
-    marginLeft: 4,
-    fontWeight: "bold",
-    fontSize: 12,
   },
   quickActions: {
     backgroundColor: "#FFFFFF",
